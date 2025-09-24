@@ -45,6 +45,8 @@ class NewtonOptimizer(Optimizer):
             return 1.0
         elif self.line_search_type == 'exact':
             return self.exact_line_search(x, dir, f_val, g_val)
+        elif self.line_search_type == 'inexact':
+            return self.inexact_line_search(x, dir, f_val, g_val)
         else:
             return 1.0
 
@@ -64,3 +66,54 @@ class NewtonOptimizer(Optimizer):
             return float(res.x)
         else:
             return 1.0
+    def inexact_line_search(self, x, d, f_val, g_val, rho=0.25, max_iter=50, alpha=1.0, tau=9):
+        # Golden section search
+        phi_prime0 = g_val.T @ d
+        if phi_prime0 >= 0:
+            raise ValueError("d is not a descent direction")
+
+        last_alpha = 0.0
+        last_f_alpha = f_val
+
+        for _ in range(max_iter):
+            f_alpha = self.problem.f(x + alpha * d)
+
+            # Goldstein bounds
+            lower = f_val + (1 - rho) * alpha * phi_prime0
+            upper = f_val + rho * alpha * phi_prime0
+
+            if f_alpha <= lower:
+                return alpha
+
+            if f_alpha > upper or f_alpha >= last_f_alpha:
+                return self.zoom_goldstein(x, d, f_val, phi_prime0, last_alpha, alpha, rho)
+
+            lower_bound = 2 * alpha - last_alpha
+            upper_bound = alpha + tau * (alpha - last_alpha)
+            alpha_next = 0.5 * (lower_bound + upper_bound)
+
+            last_alpha, last_f_alpha, alpha = alpha, f_alpha, alpha_next
+
+        return alpha 
+
+
+    def zoom_goldstein(self, x, d, f_val, phi_prime0, a, b, rho=0.25, max_iter=50):
+        best_alpha, best_f = None, float("inf")
+
+        for _ in range(max_iter):
+            alpha = 0.5 * (a + b)
+            f_alpha = self.problem.f(x + alpha * d)
+
+            lower = f_val + (1 - rho) * alpha * phi_prime0
+            upper = f_val + rho * alpha * phi_prime0
+
+            if lower <= f_alpha <= upper:
+                if f_alpha < best_f:
+                    best_alpha, best_f = alpha, f_alpha
+                b = alpha
+            elif f_alpha > upper or f_alpha >= self.problem.f(x + a * d):
+                b = alpha
+            else:
+                a = alpha
+
+        return best_alpha if best_alpha is not None else 0.5 * (a + b)
