@@ -69,9 +69,6 @@ class NewtonOptimizer(Optimizer):
     def inexact_line_search(self, x, d, f_val, g_val, rho=0.25, max_iter=50, alpha=1.0, tau=9):
         # Golden section search
         phi_prime0 = g_val.T @ d
-        if phi_prime0 >= 0:
-            raise ValueError("d is not a descent direction")
-
         last_alpha = 0.0
         last_f_alpha = f_val
 

@@ -33,3 +33,16 @@ def test_newton_exact_line_search_rosenbrock():
     assert np.linalg.norm(prob.g(x_star)) < 1e-5
 
 
+
+def test_newton_inexact_line_search_rosenbrock():
+    prob = OptimizationProblem(rosenbrock, rosenbrock_grad)
+    opt = NewtonOptimizer(prob, line_search_type='inexact', tol=1e-6, max_iter=500)
+
+    x0 = np.array([-1.2, 1.0], dtype=float)
+    x_star = opt.solve(x0)
+
+    # 目标点接近 (1, 1)
+    assert np.allclose(x_star, np.array([1.0, 1.0]), atol=1e-4)
+    # 梯度范数应足够小
+    assert np.linalg.norm(prob.g(x_star)) < 1e-5
+
