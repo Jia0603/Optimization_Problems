@@ -1,5 +1,6 @@
 import numpy as np
 from base import Optimizer
+from scipy.optimize import minimize_scalar
 
 class NewtonOptimizer(Optimizer):
 
@@ -42,5 +43,24 @@ class NewtonOptimizer(Optimizer):
         # 默认配置固定步长1.0，后面实现精确/非精确线性搜索时，在下面定义函数，在这里用if调用
         if self.line_search_type == 'fixed':
             return 1.0
+        elif self.line_search_type == 'exact':
+            return self.exact_line_search(x, dir, f_val, g_val)
+        else:
+            return 1.0
+
+    def exact_line_search(self, x, direction, f_val, g_val):
+        # ϕ(α) = f(x + α d)
+        def phi(alpha):
+            return self.problem.f(x + alpha * direction)
+
+        # 使用 Brent 方法做一维最小化；先给出一个常见的 bracket
+        # 若 bracket 不理想，minimize_scalar 会自行搜索；此处设置 bounds 以加速常见情形
+        try:
+            res = minimize_scalar(phi, bracket=(0.0, 1.0), method='Brent')
+        except Exception:
+            res = minimize_scalar(phi, method='Brent')
+
+        if hasattr(res, 'x') and np.isfinite(res.x):
+            return float(res.x)
         else:
             return 1.0
