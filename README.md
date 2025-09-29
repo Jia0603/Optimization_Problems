@@ -14,3 +14,10 @@ project02/
         benchmark.py  # 与 scipy 对比， task 12
 ！！！一些命名上需要注意的！！！
 五种QuasiNewtonOptimizer类的实现中，状态更新和初始化函数命名继承自Optimizer基类，分别为：update_algorithm_state(self, x_old, x_new, g_old, dir, alpha)；initialize_algorithm(self, x0)；状态存储的字典命名 self.algorithm_state = {}。
+
+Group contributions:
+Zhe Zhang: Implemented the Newton’s method with exact line search method; Test the performance of this method on the Rosenbrock function and visualize the iterative trajectory.
+Jiazhuang Chen: 
+Ruizhen Shen: 
+Jiuen Feng:
+Jia Gu: 

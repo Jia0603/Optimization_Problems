@@ -27,9 +27,9 @@ def test_newton_exact_line_search_rosenbrock():
     x0 = np.array([-1.2, 1.0], dtype=float)
     x_star = opt.solve(x0)
 
-    # 目标点接近 (1, 1)
+    # target point should be close to (1, 1)
     assert np.allclose(x_star, np.array([1.0, 1.0]), atol=1e-4)
-    # 梯度范数应足够小
+    # norm should be small enough
     assert np.linalg.norm(prob.g(x_star)) < 1e-5
 
 
