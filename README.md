@@ -18,9 +18,9 @@ project02/
 ！！！一些命名上需要注意的！！！
 五种QuasiNewtonOptimizer类的实现中，状态更新和初始化函数命名继承自Optimizer基类，分别为：update_algorithm_state(self, x_old, x_new, g_old, dir, alpha)；initialize_algorithm(self, x0)；状态存储的字典命名 self.algorithm_state = {}。
 
-Group contributions:
-Zhe Zhang: Implemented the Newton’s method with exact line search method; Test the performance of this method on the Rosenbrock function and visualize the iterative trajectory.
-Jiazhuang Chen:
-Ruizhen Shen:
-Jiuen Feng: Implemented the Newton's method with inexact line search method and tested the performence on the Rosenbrock function.
+Group contributions:\
+Zhe Zhang: Implemented the Newton’s method with exact line search method; Test the performance of this method on the Rosenbrock function and visualize the iterative trajectory.\
+Jiazhuang Chen: Implemented the chebyquad problem interface (task 10), ran experiments on chebyquad for n=4,8,11 using Newton and Quasi-Newton methods and compared with SciPy baseline (task 11), and studied the quality of BFGS inverse Hessian approximation with numerical Hessians and plotted error curves (task 12).\
+Ruizhen Shen:\
+Jiuen Feng: Implemented the Newton's method with inexact line search method and tested the performence on the Rosenbrock function.\
 Jia Gu:
