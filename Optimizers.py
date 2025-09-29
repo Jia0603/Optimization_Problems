@@ -67,7 +67,7 @@ class NewtonOptimizer(Optimizer):
         else:
             return 1.0
     def inexact_line_search(self, x, d, f_val, g_val, rho=0.25, max_iter=50, alpha=1.0, tau=9):
-        # Golden section search
+        # Goldstein section search
         phi_prime0 = g_val.T @ d
         last_alpha = 0.0
         last_f_alpha = f_val

@@ -1,6 +1,9 @@
 # Optimization_Problems
+
 Implementation of some classical optimization algorithms.
+
 # 文件结构建议
+
 project02/
     __init__.py
     base.py        # 包含 OptimizationProblem 和 Optimizer 两个基类 （task 1 & 2）
@@ -17,7 +20,7 @@ project02/
 
 Group contributions:
 Zhe Zhang: Implemented the Newton’s method with exact line search method; Test the performance of this method on the Rosenbrock function and visualize the iterative trajectory.
-Jiazhuang Chen: 
-Ruizhen Shen: 
-Jiuen Feng:
-Jia Gu: 
+Jiazhuang Chen:
+Ruizhen Shen:
+Jiuen Feng: Implemented the Newton's method with inexact line search method and tested the performence on the Rosenbrock function.
+Jia Gu:
