@@ -1,26 +1,31 @@
 # Optimization_Problems
 
-Implementation of some classical optimization algorithms.
+Implementation of classical and quasi-Newton optimization algorithms for NUMN21/FMNN25: Advanced Numerical Algorithms in Python (Project 2).
 
-# 文件结构建议
+The project covers Newton’s method (with exact and inexact line search), Quasi-Newton updates (DFP, BFGS, Broyden family), and tests on Rosenbrock and Chebyquad benchmark problems.
 
-project02/
-    __init__.py
-    base.py        # 包含 OptimizationProblem 和 Optimizer 两个基类 （task 1 & 2）
-    Optimizers.py   # 已完成经典牛顿法实现（task 3）； 需增加支持精确及非精确线性搜索的牛顿法实现，直接在经典牛顿法中加两个函数（task 4 & task 6），继承自Optimizer基类
-    QNOptimizers.py # 五种QuasiNewtonOptimizer类（task9） (BroydenGood, BroydenBad, SymmetricBroyden, DFP, BFGS)，继承自Optimizer基类
-    Implementation.ipynb # demo notebook
-    tests/
-        __init__.py
-        test_rosenbrock.py # task 5 & task 7 (简单验证，可以和task4、task6分别打包做)
-        test_chebyquad.py # task 10 & task 11
-        benchmark.py  # 与 scipy 对比， task 12
-！！！一些命名上需要注意的！！！
-五种QuasiNewtonOptimizer类的实现中，状态更新和初始化函数命名继承自Optimizer基类，分别为：update_algorithm_state(self, x_old, x_new, g_old, dir, alpha)；initialize_algorithm(self, x0)；状态存储的字典命名 self.algorithm_state = {}。
+## Project Structure
 
-Group contributions:\
-Zhe Zhang: Implemented the Newton’s method with exact line search method; Test the performance of this method on the Rosenbrock function and visualize the iterative trajectory.\
-Jiazhuang Chen: Implemented the chebyquad problem interface (task 10), ran experiments on chebyquad for n=4,8,11 using Newton and Quasi-Newton methods and compared with SciPy baseline (task 11), and studied the quality of BFGS inverse Hessian approximation with numerical Hessians and plotted error curves (task 12).\
-Ruizhen Shen:\
-Jiuen Feng: Implemented the Newton's method with inexact line search method and tested the performence on the Rosenbrock function.\
+    project02/
+    ├── __init__.py
+    ├── base.py            # Base classes: OptimizationProblem and Optimizer (Task 1 & 2)
+    ├── Optimizers.py      # Newton's method implementations (Task 3, 4, 6, 8)
+    ├── QNOptimizers.py    # Quasi-Newton methods: DFP, BFGS, Symmetric/Good/Bad Broyden (Task 9)
+    ├── Implementation.ipynb  # Notebook with experiments and visualizations
+    └── tests/
+     ├── __init__.py
+     ├── test_rosenbrock.py   # Verification on Rosenbrock (Task 5 & 7)
+     ├── test_chebyquad.py    # Experiments with Chebyquad (Task 10 & 11)
+     └── benchmark.py         # Evaluation tools for Hessian inverse quality (Task 12)
+## !!! Important Naming Considerations !!!
+In the five implementations of the QuasiNewtonOptimizer class, the state update and initialization function names inherit from the Optimizer base class: update_algorithm_state(self, x_old, x_new, g_old, dir, alpha); initialize_algorithm(self, x0); The dictionary for state storage is named: self.algorithm_state = {};
+
+## Group contributions:
+Zhe Zhang: Implemented the Newton’s method with exact line search method; Test the performance of this method on the Rosenbrock function and visualize the iterative trajectory.
+
+Jiazhuang Chen: Implemented the chebyquad problem interface (task 10), ran experiments on chebyquad for n=4,8,11 using Newton and Quasi-Newton methods and compared with SciPy baseline (task 11), and studied the quality of BFGS inverse Hessian approximation with numerical Hessians and plotted error curves (task 12).
+
+Ruizhen Shen:
+
+Jiuen Feng: Implemented the Newton's method with inexact line search method and tested the performence on the Rosenbrock function.
 Jia Gu:

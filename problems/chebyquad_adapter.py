@@ -1,5 +1,5 @@
 import numpy as np
-from chebyquad_problem import chebyquad, gradchebyquad  # ← 修正函数名
+from chebyquad_problem import chebyquad, gradchebyquad
 from base import OptimizationProblem
 
 def make_chebyquad_problem(n: int, use_grad: bool = True):
@@ -12,12 +12,12 @@ def make_chebyquad_problem(n: int, use_grad: bool = True):
     def g(x: np.ndarray) -> np.ndarray:
         return gradchebyquad(x)
 
-    # 经典稳健初值：x_j = (j+1)/(dim+1) ∈ (0,1)
+    # Classic Robust Initial Value：x_j = (j+1)/(dim+1) ∈ (0,1)
     x0 = np.linspace(1, dim, dim, dtype=float) / (dim + 1.0)
 
     if use_grad:
-        problem = OptimizationProblem(f, g)       # ← 只传 function, gradient
+        problem = OptimizationProblem(f, g)       # ←  function, gradient
     else:
-        problem = OptimizationProblem(f, None)    # 自动用数值梯度
+        problem = OptimizationProblem(f, None)    # Automatically use numerical gradient
 
     return problem, x0
