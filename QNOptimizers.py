@@ -1,36 +1,34 @@
 # QNOptimizers.py
 import numpy as np
 from base import Optimizer
+from Optimizers import NewtonOptimizer
 
 _EPS = 1e-12
 
 
 class _QNBase(Optimizer):
     """
-    通用拟牛顿基类：提供基于 H 的方向，步长默认 1.0。
-    子类只需：
-      - 在 initialize_algorithm(x0) 里初始化需要的矩阵（H 或 G，或两者）
-      - 在 update_algorithm_state(...) 里用 (s, y) 做相应更新
+    Generic Quasi-Newton base class: provides direction based on H,
+    default step size = 1.0.
+    Subclasses only need to:
+      - initialize_algorithm(x0): initialize required matrices (H or G, or both)
+      - update_algorithm_state(...): update with (s, y)
     """
     def compute_direction(self, x, f_val, g_val):
-        # 缺省使用逆 Hessian 近似 H：dir = -H g
+        # Default: use inverse Hessian approximation H: dir = -H g
         H = self.algorithm_state.get('H', None)
         if H is None:
-            # 退化为最速下降
+            # fallback to steepest descent
             return -g_val
         return - H @ g_val
 
     def compute_step_size(self, x, direction, f_val, g_val):
-        # 与 Newton 当前实现一致，先用固定步长；后续可接线搜索
-        return 1.0
-
-    @staticmethod
-    def _symeig_guard(M):
-        # 可选：确保数值稳定（这里不做矫正，只保证对称写法一致）
-        return (M + M.T) / 2.0
+        # Wolfe line search
+        newton_like = NewtonOptimizer(self.problem)
+        return newton_like.inexact_line_search(x, direction, f_val, g_val)
 
 
-# ---------- 1) Good Broyden：对 G 做简单秩-1更新，并用 Sherman–Morrison 更新 H ----------
+# ---------- 1) Good Broyden: rank-1 update of G, Sherman–Morrison update of H ----------
 class BroydenGood(_QNBase):
     """
     Simple Broyden rank-1 update of G, then update H via Sherman–Morrison.
@@ -40,8 +38,8 @@ class BroydenGood(_QNBase):
     """
     def initialize_algorithm(self, x0):
         n = len(x0)
-        self.algorithm_state['G'] = np.eye(n)   # Hessian approx
-        self.algorithm_state['H'] = np.eye(n)   # Inverse approx (for direction)
+        self.algorithm_state['G'] = np.eye(n)   # Hessian approximation
+        self.algorithm_state['H'] = np.eye(n)   # Inverse approximation (for direction)
 
     def update_algorithm_state(self, x_old, x_new, g_old, dir, alpha):
         prob = self.problem
@@ -54,13 +52,13 @@ class BroydenGood(_QNBase):
 
         sTs = float(s @ s)
         if sTs < _EPS:
-            return  # 步长太小，跳过更新
+            return  # step too small, skip update
 
-        # --- 更新 G（simple rank-1）---
+        # --- update G (simple rank-1) ---
         q = y - G @ s
         G_new = G + np.outer(q, s) / sTs
 
-        # --- 用 SM 更新 H ---
+        # --- update H with Sherman–Morrison ---
         u = q / sTs
         v = s
         Hu = H @ u
@@ -69,14 +67,14 @@ class BroydenGood(_QNBase):
         if abs(denom) > _EPS:
             H_new = H - np.outer(Hu, H @ v) / denom
         else:
-            # 退化：不稳定时保持原值（也可回退到求逆 G_new）
+            # fallback: keep old H if unstable
             H_new = H
 
-        self.algorithm_state['G'] = self._symeig_guard(G_new)
-        self.algorithm_state['H'] = self._symeig_guard(H_new)
+        self.algorithm_state['G'] = (G_new + G_new.T) / 2.0
+        self.algorithm_state['H'] = (H_new + H_new.T) / 2.0
 
 
-# ---------- 2) Bad Broyden：对 H 做简单秩-1更新 ----------
+# ---------- 2) Bad Broyden: rank-1 update of H ----------
 class BroydenBad(_QNBase):
     """
     Simple Broyden rank-1 update of H = G^{-1} (secant: H_{k+1} y = s)
@@ -99,15 +97,15 @@ class BroydenBad(_QNBase):
 
         Hy = H @ y
         H_new = H + np.outer(s - Hy, y) / yTy
-        self.algorithm_state['H'] = self._symeig_guard(H_new)
+        self.algorithm_state['H'] = (H_new + H_new.T) / 2.0
 
 
-# ---------- 3) Symmetric Broyden（SR1）对 H 的对称秩-1更新 ----------
+# ---------- 3) Symmetric Broyden (SR1): symmetric rank-1 update of H ----------
 class SymmetricBroyden(_QNBase):
     """
     SR1 (symmetric rank-1) inverse update:
       H_{k+1} = H_k + ((s - H_k y)(s - H_k y)^T) / ((s - H_k y)^T y)
-    注意：当分母很小或为负时常跳过更新（数值稳健做法）。
+    Note: when denominator is too small or negative, usually skip the update.
     """
     def initialize_algorithm(self, x0):
         n = len(x0)
@@ -122,14 +120,14 @@ class SymmetricBroyden(_QNBase):
         H = self.algorithm_state['H']
         r = s - H @ y
         denom = float(r @ y)
-        # SR1 常规滤波：|denom| 太小就跳过（避免数值爆炸）
+        # SR1 safeguard: skip update if |denom| is too small
         if abs(denom) > np.sqrt(_EPS):
             H_new = H + np.outer(r, r) / denom
-            self.algorithm_state['H'] = self._symeig_guard(H_new)
+            self.algorithm_state['H'] = (H_new + H_new.T) / 2.0
         # else: skip update
 
 
-# ---------- 4) DFP（秩-2）对 H 的更新 ----------
+# ---------- 4) DFP: rank-2 update of H ----------
 class DFP(_QNBase):
     """
     DFP inverse update:
@@ -158,10 +156,10 @@ class DFP(_QNBase):
         term1 = np.outer(s, s) / ys
         term2 = np.outer(Hy, Hy) / yHy
         H_new = H + term1 - term2
-        self.algorithm_state['H'] = self._symeig_guard(H_new)
+        self.algorithm_state['H'] = (H_new + H_new.T) / 2.0
 
 
-# ---------- 5) BFGS（秩-2）对 H 的更新 ----------
+# ---------- 5) BFGS: rank-2 update of H ----------
 class BFGS(_QNBase):
     """
     BFGS inverse update:
@@ -187,4 +185,4 @@ class BFGS(_QNBase):
         I = np.eye(len(s))
         V = I - rho * np.outer(s, y)
         H_new = V @ H @ V.T + rho * np.outer(s, s)
-        self.algorithm_state['H'] = self._symeig_guard(H_new)
+        self.algorithm_state['H'] = (H_new + H_new.T) / 2.0
