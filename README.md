@@ -28,4 +28,5 @@ Jiazhuang Chen: Implemented the chebyquad problem interface (task 10), ran exper
 Ruizhen Shen:
 
 Jiuen Feng: Implemented the Newton's method with inexact line search method and tested the performence on the Rosenbrock function.
-Jia Gu:
+
+Jia Gu: Built the two base classes in task 1 and 2; Implemented the Classic Netwon Method in task3.
