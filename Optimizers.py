@@ -40,7 +40,7 @@ class NewtonOptimizer(Optimizer):
         return dir
 
     def compute_step_size(self, x, dir, f_val, g_val):
-        # 默认配置固定步长1.0，后面实现精确/非精确线性搜索时，在下面定义函数，在这里用if调用
+        
         if self.line_search_type == 'fixed':
             return 1.0
         elif self.line_search_type == 'exact':
