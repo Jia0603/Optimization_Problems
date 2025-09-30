@@ -25,7 +25,7 @@ Zhe Zhang: Implemented the Newton’s method with exact line search method; Test
 
 Jiazhuang Chen: Implemented the chebyquad problem interface (task 10), ran experiments on chebyquad for n=4,8,11 using Newton and Quasi-Newton methods and compared with SciPy baseline (task 11), and studied the quality of BFGS inverse Hessian approximation with numerical Hessians and plotted error curves (task 12).
 
-Ruizhen Shen:
+Ruizhen Shen: Implemented five classes of Quasi-Newton optimizers in task 9.
 
 Jiuen Feng: Implemented the Newton's method with inexact line search method and tested the performence on the Rosenbrock function.
 
