@@ -14,7 +14,7 @@ from Optimizers import NewtonOptimizer
 from QNOptimizers import BFGS, DFP
 
 
-# 三个类名
+# classes
 try:
     from QNOptimizers import BroydenGood
 except Exception:
@@ -31,13 +31,13 @@ except Exception:
 
 # --------- 公共工具 ---------
 def call_with_supported_args(cls, *args, **kwargs):
-    """根据构造函数签名，丢弃不被支持的关键字参数，防止 TypeError。"""
+    """Discard unsupported keyword arguments based on the constructor signature to prevent TypeError."""
     sig = inspect.signature(cls)
     supported = {k: v for k, v in kwargs.items() if k in sig.parameters}
     return cls(*args, **supported)
 
 def run_ours(method_cls, name, n, tol=1e-8, max_iter=2000, **extra_kwargs):
-    """运行我们的优化器，返回统一记录。"""
+    '''Run our optimizer and return a unified record.'''
     problem, x0 = make_chebyquad_problem(n, use_grad=True)
     optimizer = call_with_supported_args(
         method_cls, problem, tol=tol, max_iter=max_iter, **extra_kwargs
@@ -46,7 +46,7 @@ def run_ours(method_cls, name, n, tol=1e-8, max_iter=2000, **extra_kwargs):
     x_star = optimizer.solve(x0)
     t1 = perf_counter()
 
-    # 统一提取迭代信息
+    # Unified extraction of iteration information
     iters = None
     if hasattr(optimizer, "iter_info") and isinstance(optimizer.iter_info, dict):
         iters = optimizer.iter_info.get("iter", None)
@@ -58,7 +58,7 @@ def run_ours(method_cls, name, n, tol=1e-8, max_iter=2000, **extra_kwargs):
                 time=t1 - t0, ok=ok)
 
 def run_scipy_bfgs(n, gtol=1e-8, maxiter=2000):
-    """scipy 基线：fmin_bfgs（无约束）。"""
+    """scipy base line：fmin_bfgs"""
     _, x0 = make_chebyquad_problem(n, use_grad=True)
     f, g = chebyquad, gradchebyquad
     t0 = perf_counter()
