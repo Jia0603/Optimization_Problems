@@ -55,8 +55,6 @@ class NewtonOptimizer(Optimizer):
         def phi(alpha):
             return self.problem.f(x + alpha * direction)
 
-        # 使用 Brent 方法做一维最小化；先给出一个常见的 bracket
-        # 若 bracket 不理想，minimize_scalar 会自行搜索；此处设置 bounds 以加速常见情形
         try:
             res = minimize_scalar(phi, bracket=(0.0, 1.0), method='Brent')
         except Exception:
@@ -69,6 +67,15 @@ class NewtonOptimizer(Optimizer):
     def inexact_line_search(self, x, d, f_val, g_val, rho=0.25, max_iter=50, alpha=1.0, tau=9):
         # Goldstein section search
         phi_prime0 = g_val.T @ d
+        
+        if phi_prime0 >= 0:
+            # print("Warning: Search direction is not a descent direction! Using gradient descent direction.")
+            d = -g_val
+            phi_prime0 = g_val.T @ d
+            if phi_prime0 >= 0:
+                # print("Warning: Gradient is zero or positive. Algorithm may have converged.")
+                return 0.0
+        
         last_alpha = 0.0
         last_f_alpha = f_val
 
