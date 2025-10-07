@@ -47,6 +47,8 @@ class NewtonOptimizer(Optimizer):
             return self.exact_line_search(x, dir, f_val, g_val)
         elif self.line_search_type == 'inexact':
             return self.inexact_line_search(x, dir, f_val, g_val)
+        elif self.line_search_type == 'strong_wolfe':
+            return self.strong_wolfe_line_search(x, dir, f_val, g_val)
         else:
             return 1.0
 
@@ -121,3 +123,70 @@ class NewtonOptimizer(Optimizer):
                 a = alpha
 
         return best_alpha if best_alpha is not None else 0.5 * (a + b)
+
+    def strong_wolfe_line_search(self, x, d, f_val, g_val, alpha0=1.0, c1=0.1, c2=0.01, max_iter=30, expand_factor=9):
+
+
+        phi_prime0 = g_val.T @ d
+        if phi_prime0 >= 0:
+            return 0.0
+
+        # shorthands
+        def phi(alpha):
+            return self.problem.f(x + alpha * d)
+
+        def phip(alpha):
+            return np.dot(self.problem.g(x + alpha * d), d)
+
+        alpha_prev, phi_prev = 0.0, f_val
+        alpha = alpha0
+        for i in range(max_iter):
+            phi_alpha = phi(alpha)
+
+            if (phi_alpha > f_val + c1 * alpha * phi_prime0) or (
+                i > 0 and phi_alpha >= phi_prev
+            ):
+                return self.zoom_wolfe(
+                    alpha_prev, alpha, f_val, phi_prime0, c1, c2, phi, phip, max_iter
+                )
+
+            grad_alpha = phip(alpha)
+            if abs(grad_alpha) <= -c2 * phi_prime0:
+                return alpha
+
+
+            if grad_alpha >= 0:
+                return self.zoom_wolfe(
+                    alpha, alpha_prev, f_val, phi_prime0, c1, c2, phi, phip, max_iter
+                )
+
+            alpha_prev, phi_prev = alpha, phi_alpha
+            alpha *= expand_factor
+
+        return alpha  # fallback
+
+    def zoom_wolfe(self, alpha_lo, alpha_hi, phi0, phi_prime0, c1, c2, phi, phip, max_iter=30):
+        """
+        Zoom function for Wolfe conditions line search using simple bisection.
+        Finds an acceptable step size in the interval [alpha_lo, alpha_hi].
+        """
+        for _ in range(max_iter):
+            # Simple bisection
+            alpha = 0.5 * (alpha_lo + alpha_hi)
+            
+            phi_alpha = phi(alpha)
+            grad_alpha = phip(alpha)
+            
+            # Check Wolfe conditions
+            sufficient_decrease = phi_alpha <= phi0 + c1 * alpha * phi_prime0
+            curvature = abs(grad_alpha) <= -c2 * phi_prime0
+            if sufficient_decrease and curvature:
+                return alpha
+            
+            # Simple interval update
+            if not sufficient_decrease:
+                alpha_hi = alpha
+            else:
+                alpha_lo = alpha
+        
+        return alpha
