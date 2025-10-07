@@ -23,7 +23,7 @@ class _QNBase(Optimizer):
         return - H @ g_val
 
     def compute_step_size(self, x, direction, f_val, g_val):
-        # Wolfe line search
+        # Goldstein section search
         newton_like = NewtonOptimizer(self.problem)
         return newton_like.inexact_line_search(x, direction, f_val, g_val)
 
