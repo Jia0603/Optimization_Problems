@@ -69,11 +69,33 @@ def run_scipy_bfgs(n, gtol=1e-8, maxiter=2000):
     return dict(method="scipy-fmin_bfgs", n=n, iters=None, fval=f_star,
                 grad_norm=g_norm, time=t1 - t0, ok=True)
 
-def pretty_print(rows):
-    header = ["n", "method", "iters", "f(x*)", "||grad||", "time(s)", "ok"]
-    print("{:>3}  {:>20}  {:>6}  {:>12}  {:>10}  {:>8}  {:>3}".format(*header))
+
+def pretty_print(rows, tol_grad=1e-6, tol_f=1e-12, max_iters=2000):
+    header = ["n", "method", "iters", "f(x*)", "||grad||", "time(s)", "ok", "reason"]
+    print("{:>3}  {:>20}  {:>6}  {:>12}  {:>10}  {:>8}  {:>3}  {:>8}".format(*header))
+
     for r in rows:
         it = "-" if r["iters"] is None else r["iters"]
-        print("{:>3}  {:>20}  {:>6}  {:>12.4e}  {:>10.2e}  {:>8.3f}  {:>3}".format(
-            r["n"], r["method"], it, r["fval"], r["grad_norm"], r["time"], "✓" if r["ok"] else "×"
+
+        # ---- 判断收敛状态 ----
+        grad_norm = r["grad_norm"]
+        fval = r["fval"]
+        df = abs(r.get("df", 0))  # 若没有 df，就默认为 0
+
+        if grad_norm <= tol_grad:
+            ok = True
+            status = "grad"
+        elif df <= tol_f:
+            ok = True
+            status = "fchg"
+        elif r["iters"] is not None and r["iters"] >= max_iters:
+            ok = False
+            status = "max_iter"
+        else:
+            ok = False
+            status = "?"
+
+        # ---- 打印格式 ----
+        print("{:>3}  {:>20}  {:>6}  {:>12.4e}  {:>10.2e}  {:>8.3f}  {:>3}  {:>8}".format(
+            r["n"], r["method"], it, fval, grad_norm, r["time"], "✓" if ok else "×", status
         ))
