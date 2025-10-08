@@ -25,7 +25,9 @@ class _QNBase(Optimizer):
     def compute_step_size(self, x, direction, f_val, g_val):
         # Goldstein section search
         newton_like = NewtonOptimizer(self.problem)
-        return newton_like.inexact_line_search(x, direction, f_val, g_val)
+        # return newton_like.inexact_line_search(x, direction, f_val, g_val)
+        return newton_like.strong_wolfe_line_search(x, direction, f_val, g_val) # Wolfe
+
 
 
 # ---------- 1) Good Broyden: rank-1 update of G, Sherman–Morrison update of H ----------
